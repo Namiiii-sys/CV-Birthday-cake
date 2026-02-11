@@ -166,7 +166,6 @@ function createConfetti() {
 }
 
 function beginQuietEnding() {
-  // Create the overlay container
   const endingScreen = document.createElement('div');
   endingScreen.className = 'quiet-ending';
 
@@ -286,7 +285,7 @@ function startPersonalFilmReel() {
     reelAudio.src = songSrc;
     reelAudio.preload = 'auto';
     reelAudio.loop = false;
-    reelAudio.volume = 0.75;
+    reelAudio.volume = 0; 
     reelAudio.style.display = 'none';
     endingScreen.appendChild(reelAudio);
     reelAudio.onerror = () => console.warn('Reel audio not found:', songSrc);
@@ -298,10 +297,14 @@ function startPersonalFilmReel() {
 
       const playPromise = reelAudio.play();
       if (playPromise && typeof playPromise.then === 'function') {
-        playPromise.catch((err) => console.warn('Autoplay blocked for reel audio', err));
+        playPromise
+          .then(() => {
+            fadeAudioTo(reelAudio, 0.18, 2000);
+          })
+          .catch((err) => console.warn('Autoplay blocked for reel audio', err));
       }
 
-      const fixedDurationMs = 30000;
+      const fixedDurationMs = 35000;
 
       requestAnimationFrame(() => {
         const singleCycleWidth = (filmStrip.scrollWidth || filmStrip.offsetWidth) / 2 || 1;
@@ -344,16 +347,7 @@ function animateFilmReel(filmStrip, speedPxPerSecond = 60) {
 }
 
 function endFilmSequence(container, filmContainer, reelAudio) {
-  try {
-    if (reelAudio) {
-      reelAudio.pause();
-      reelAudio.currentTime = 0;
-      if (reelAudio.parentNode) reelAudio.parentNode.removeChild(reelAudio);
-    }
-  } catch (e) {
-    console.warn('Error stopping reel audio', e);
-  }
-
+  // Don't stop audio immediately - let it linger and fade out later
   if (filmContainer) {
     filmContainer.style.opacity = '0';
     filmContainer.style.transition = 'opacity 2s ease-out';
@@ -388,6 +382,12 @@ Love ya <3
     letterContainer.style.display = 'flex';
     requestAnimationFrame(() => {
       letterContainer.style.opacity = '1';
+      
+      if (reelAudio) {
+        setTimeout(() => {
+          fadeAudioTo(reelAudio, 0, 5000);
+        }, 8000); 
+      }
     });
   }, 1000);
 }
@@ -396,6 +396,27 @@ let audioContext = null;
 let analyser = null;
 let microphone = null;
 let isBlowDetectionActive = false;
+
+function fadeAudioTo(audioEl, targetVolume, durationMs) {
+  if (!audioEl) return;
+  
+  const startVolume = audioEl.volume;
+  const startTime = Date.now();
+  
+  const fadeInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / durationMs, 1);
+    audioEl.volume = startVolume + (targetVolume - startVolume) * progress;
+    
+    if (progress >= 1) {
+      clearInterval(fadeInterval);
+      audioEl.volume = targetVolume;
+      if (targetVolume === 0) {
+        audioEl.pause();
+      }
+    }
+  }, 50);
+}
 
 function preloadReelImages() {
   const reelImages = [
