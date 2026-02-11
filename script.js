@@ -210,11 +210,10 @@ function startPersonalFilmReel() {
   const ourMoments = [
     { type: 'image', src: 'assets/1.png', caption: 'looked like a cute puppy!', Overall: '100/10' },
     { type: 'image', src: 'assets/2.png', caption: 'Prettiest baby ((', Overall: '100/10' },
-    { type: 'image', src: 'assets/3.png', caption: 'Cute We', Overall: '10/10' },
+    { type: 'image', src: 'assets/7.jpeg', caption: 'Sleepy unc(beauty)', Overall: '10/10'},
     { type: 'image', src: 'assets/4.png', caption: 'Us', Overall: '11/10' },
     { type: 'image', src: 'assets/5.png', caption: 'Very my type😋', Overall: '100/10' },
     { type: 'image', src: 'assets/6.jpeg', caption: 'My favourite picture of you', Overall: '1000/10' },
-    { type: 'video', src: 'assets/7.jpeg', caption: 'Sleepy unc(beauty)', Overall: '10/10'},
   ];
 
   const filmStrip = document.createElement('div');
@@ -251,7 +250,7 @@ function startPersonalFilmReel() {
     caption.className = 'film-caption';
     caption.innerHTML = `
       <span class="caption-text">${moment.caption}</span>
-      <span class="frame-number">${moment.date}</span>
+      <span class="frame-number">${moment.Overall}</span>
     `;
 
     frameContent.appendChild(caption);
@@ -266,49 +265,90 @@ function startPersonalFilmReel() {
   });
 
   filmContainer.appendChild(filmStrip);
-
   const endingScreen = document.querySelector('.quiet-ending');
   if (endingScreen) {
     endingScreen.appendChild(filmContainer);
     filmContainer.style.opacity = '0';
     filmContainer.style.transform = 'scale(0.9)';
 
+ 
+    const songSrc = 'assets/audio.mp3';
+    const reelAudio = document.createElement('audio');
+    reelAudio.src = songSrc;
+    reelAudio.preload = 'auto';
+    reelAudio.loop = false;
+    reelAudio.volume = 0.75;
+    reelAudio.style.display = 'none';
+    endingScreen.appendChild(reelAudio);
+    reelAudio.onerror = () => console.warn('Reel audio not found:', songSrc);
+
     setTimeout(() => {
       filmContainer.style.opacity = '1';
       filmContainer.style.transform = 'scale(1)';
       filmContainer.style.transition = 'all 1.5s cubic-bezier(0.23, 1, 0.32, 1)';
-      animateFilmReel(filmStrip);
+
+      const playPromise = reelAudio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.catch((err) => console.warn('Autoplay blocked for reel audio', err));
+      }
+
+  // slower scroll: pixels per second (lower = slower)
+  const speedPxPerSecond = 60; 
+
+      requestAnimationFrame(() => {
+        const singleCycleWidth = (filmStrip.scrollWidth || filmStrip.offsetWidth) / 2 || 1;
+        const cycleDurationMs = (singleCycleWidth / speedPxPerSecond) * 1000;
+
+        // Start time-based animation
+        animateFilmReel(filmStrip, speedPxPerSecond);
+
+        // End after one full cycle plus a small buffer
+        setTimeout(() => endFilmSequence(endingScreen, filmContainer, reelAudio), Math.max(3000, cycleDurationMs + 1200));
+      });
     }, 500);
   }
 
-  setTimeout(() => {
-    endFilmSequence(endingScreen, filmContainer);
-  }, 14000);
-
 }
 
-function animateFilmReel(filmStrip) {
+function animateFilmReel(filmStrip, speedPxPerSecond = 60) {
   let position = 0;
-  const speed = 2.0;
   let isPaused = false;
+  const singleCycleWidth = (filmStrip.scrollWidth || filmStrip.offsetWidth) / 2 || 1;
 
   filmStrip.addEventListener('mouseenter', () => isPaused = true);
   filmStrip.addEventListener('mouseleave', () => isPaused = false);
 
-  function animate() {
+  let lastTime = null;
+  function frame(time) {
+    if (!lastTime) lastTime = time;
+    const delta = time - lastTime; // ms
+    lastTime = time;
+
     if (!isPaused) {
-      position -= speed;
-      if (position <= -filmStrip.scrollWidth / 2) {
+      position -= speedPxPerSecond * (delta / 1000);
+      if (position <= -singleCycleWidth) {
         position = 0;
       }
       filmStrip.style.transform = `translateX(${position}px)`;
     }
-    requestAnimationFrame(animate);
+    requestAnimationFrame(frame);
   }
-  animate();
+
+  requestAnimationFrame(frame);
 }
 
-function endFilmSequence(container, filmContainer) {
+function endFilmSequence(container, filmContainer, reelAudio) {
+  // Stop reel audio if provided
+  try {
+    if (reelAudio) {
+      reelAudio.pause();
+      reelAudio.currentTime = 0;
+      if (reelAudio.parentNode) reelAudio.parentNode.removeChild(reelAudio);
+    }
+  } catch (e) {
+    console.warn('Error stopping reel audio', e);
+  }
+
   if (filmContainer) {
     filmContainer.style.opacity = '0';
     filmContainer.style.transition = 'opacity 2s ease-out';
