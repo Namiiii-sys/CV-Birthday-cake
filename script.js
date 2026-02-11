@@ -237,6 +237,15 @@ function startPersonalFilmReel() {
     } else {
       mediaEl = document.createElement('img');
       mediaEl.src = moment.src;
+      if (moment.src === 'assets/5.png') {
+        mediaEl.style.objectPosition = '50% 20%';
+      }
+      if (moment.src === 'assets/6.jpeg') {
+        mediaEl.style.objectPosition = '50% 22%';
+      }
+      if (moment.src === 'assets/7.jpeg') {
+        mediaEl.style.objectPosition = '50% 20%';
+      }
     }
 
     mediaEl.loading = 'lazy';
@@ -292,18 +301,15 @@ function startPersonalFilmReel() {
         playPromise.catch((err) => console.warn('Autoplay blocked for reel audio', err));
       }
 
-  // slower scroll: pixels per second (lower = slower)
-  const speedPxPerSecond = 60; 
+      const fixedDurationMs = 30000;
 
       requestAnimationFrame(() => {
         const singleCycleWidth = (filmStrip.scrollWidth || filmStrip.offsetWidth) / 2 || 1;
-        const cycleDurationMs = (singleCycleWidth / speedPxPerSecond) * 1000;
+        const speedPxPerSecond = singleCycleWidth / (fixedDurationMs / 1000);
 
-        // Start time-based animation
         animateFilmReel(filmStrip, speedPxPerSecond);
 
-        // End after one full cycle plus a small buffer
-        setTimeout(() => endFilmSequence(endingScreen, filmContainer, reelAudio), Math.max(3000, cycleDurationMs + 1200));
+        setTimeout(() => endFilmSequence(endingScreen, filmContainer, reelAudio), fixedDurationMs);
       });
     }, 500);
   }
@@ -321,7 +327,7 @@ function animateFilmReel(filmStrip, speedPxPerSecond = 60) {
   let lastTime = null;
   function frame(time) {
     if (!lastTime) lastTime = time;
-    const delta = time - lastTime; // ms
+    const delta = time - lastTime;
     lastTime = time;
 
     if (!isPaused) {
@@ -338,7 +344,6 @@ function animateFilmReel(filmStrip, speedPxPerSecond = 60) {
 }
 
 function endFilmSequence(container, filmContainer, reelAudio) {
-  // Stop reel audio if provided
   try {
     if (reelAudio) {
       reelAudio.pause();
@@ -366,9 +371,9 @@ function endFilmSequence(container, filmContainer, reelAudio) {
       <h1 class="letter-header">Happy birthday</h1>
       <div class="letter-content">
         <p class="letter-body">
-I only want you to be happy, and I am wishing you all the happiness in the world on this special day. Happiest Birthday to My Number One, My Human Diary, My Bestest Friend, My Everything!
-
-You mean everything to me, and I am forever grateful for your presence in my life.
+Happyyy birthdayyy my most adorable babieee,I hope you get all the besttt things in the world cause you deserve to, I'm so proud of you for everything!
+You mean everything to me, and I am forever grateful for your presence in my life. Even Though i won't be able to wish you in person (i'm very sad about it) but that shouldn't stop from making your day a lil bit better(?). You've been Handling a lot of heavy stuff lately, yoou're so so strong, and again im so so so proud of my sweet boy.
+Love ya <3
         </p>
         <p class="letter-signoff">
           ~ ♥
@@ -391,6 +396,22 @@ let audioContext = null;
 let analyser = null;
 let microphone = null;
 let isBlowDetectionActive = false;
+
+function preloadReelImages() {
+  const reelImages = [
+    'assets/1.png',
+    'assets/2.png',
+    'assets/4.png',
+    'assets/5.png',
+    'assets/6.jpeg',
+    'assets/7.jpeg'
+  ];
+  
+  reelImages.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+}
 
 async function initBlowDetection() {
   try {
@@ -444,6 +465,7 @@ function startHandTracking() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  preloadReelImages(); // Start loading images early
   setInitialMatchPosition();
   initCamera();
   if (isMobile) {

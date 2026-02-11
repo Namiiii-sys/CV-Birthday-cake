@@ -129,19 +129,63 @@ body {
 }
 
 .instructions {
-  font-size: 0.75rem;
-  color: #ffffff;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
+  font-size: 0.9rem;
   font-style: italic;
+  color: #fffdf8;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
   text-align: center;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 0.75rem 1.5rem;
-  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,240,220,0.04));
+  padding: 0.9rem 1.25rem;
+  border-radius: 999px;
   margin-top: 1rem;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(6px) saturate(1.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  transform-origin: center;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.instructions:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.22);
+}
+
+.instr-step {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.instr-note {
+  display: block;
+  font-size: 0.92rem;
+  color: #fff6ee;
+  opacity: 0.95;
+}
+
+/* small sparkle animation for the note emoji */
+@keyframes sparkle {
+  0% { transform: translateY(0) scale(1); opacity: 0.8 }
+  50% { transform: translateY(-2px) scale(1.02); opacity: 1 }
+  100% { transform: translateY(0) scale(1); opacity: 0.9 }
+}
+
+.instr-note::after {
+  content: ' ✨';
+  display: inline-block;
+  animation: sparkle 2.5s ease-in-out infinite;
+  margin-left: 6px;
+}
+
+.instructions.highlight {
+  animation: instrPulse 1s ease-in-out 0s 3;
+}
+
+@keyframes instrPulse {
+  0% { transform: scale(1); box-shadow: 0 8px 30px rgba(0,0,0,0.18); }
+  50% { transform: scale(1.02); box-shadow: 0 18px 40px rgba(0,0,0,0.28); }
+  100% { transform: scale(1); box-shadow: 0 8px 30px rgba(0,0,0,0.18); }
 }
 
 .signature {
@@ -632,12 +676,9 @@ body {
   }
 }
 
-/* Letter Ending */
 .letter-container {
   display: none;
-  /* Flex when active */
   position: fixed;
-  /* Fixed to viewport */
   top: 0;
   left: 0;
   width: 100%;
@@ -671,7 +712,7 @@ body {
 
   width: 100%;
   max-width: 480px;
-  padding: 50px 40px;
+  padding: 36px 28px;
   border-radius: 2px 2px 2px 30px;
   /* Bottom-left rounded, Top-right folded */
   transform: rotate(-2deg);
@@ -699,14 +740,18 @@ body {
   /* Larger for readability */
   line-height: 1.6;
   font-weight: 600;
-  margin-top: 10px;
+  margin-top: 6px;
+  /* Keep long letters contained and scrollable on small viewports */
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  padding-right: 8px; /* space for scrollbar */
 }
 
 .letter-header {
   font-family: 'Beau Rivage', cursive;
   /* User requested font */
   color: #5d4037;
-  font-size: 3.8rem;
+  font-size: 3rem;
   /* Increased size as this font is delicate */
   text-align: center;
   margin-bottom: 20px;
@@ -724,7 +769,7 @@ body {
 }
 
 .letter-body {
-  margin-bottom: 30px;
+  margin-bottom: 18px;
   white-space: pre-wrap;
   text-align: left;
   /* Handwriting is usually left-aligned */
